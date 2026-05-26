@@ -218,17 +218,7 @@ if st.session_state.current_step == 1:
         bg_color = "rgba(255, 255, 255, 0.35)" if is_sel else "rgba(255, 255, 255, 0.08)"
         border_color = "rgba(255, 255, 255, 0.8)" if is_sel else "rgba(255, 255, 255, 0.15)"
         
-        col.markdown(f"""
-            <style>
-            div.stButton > button[key="btn_{genre}"] {{
-                background-color: {bg_color} !important;
-                border: 1px solid {border_color} !important;
-                color: #FFFFFF !important;
-            }}
-            </style>
-        """, unsafe_allow_html=True)
-        
-        if col.button(genre, key=f"btn_{genre}"):
+        if col.button(genre, key=f"btn_{genre}", use_container_width=False):
             if is_sel: 
                 st.session_state.liked_genres.remove(genre)
             else: 
@@ -373,7 +363,20 @@ elif st.session_state.current_step == 3:
 
                 st.write("---")
                 for _, row in results.iterrows():
-                    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+                    movie_genres = [g.strip() for g in str(row['Genre']).split(',')]
+                    genres_fmted = []
+                    has_genre_match = False
+                    for g in movie_genres:
+                        if g in st.session_state.liked_genres:
+                            has_genre_match = True
+                            genres_fmted.append(f"<span style='background-color: #EB3678; color: white; padding: 2px 8px; border-radius: 6px; font-weight: bold;'>{g}</span>")
+                        else:
+                            genres_fmted.append(g)
+
+                    if has_genre_match:
+                        st.markdown('<div class="glass-card" style="border: 2px solid #EB3678 !important; box-shadow: 0 0 20px rgba(235, 54, 120, 0.3) !important;">', unsafe_allow_html=True)
+                    else:
+                        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
                     col_img, col_txt = st.columns([1, 2.5])
                     
                     with col_img:
@@ -386,15 +389,16 @@ elif st.session_state.current_step == 3:
                             else: st.info("No Poster Available")
                     
                     with col_txt:
-                        is_preferred = False
+                        has_preferred_director = False
                         if 'Director' in row and st.session_state.preferred_directors:
                             if any(pref_dir in str(row['Director']) for pref_dir in st.session_state.preferred_directors):
-                                is_preferred = True
-                        if is_preferred:
+                                has_preferred_director = True
+
+                        if has_preferred_director:
                             st.markdown("<span style='background: linear-gradient(135deg, #EB3678, #FB773C); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;'>🎬 Preferred Director</span><br><br>", unsafe_allow_html=True)
 
                         st.markdown(f"<h3 style='margin-top:0px; color:#FB773C !important; font-weight:800;'>{row['Title']}</h3>", unsafe_allow_html=True)
-                        st.markdown(f"<p style='font-size:0.95rem; margin-bottom:5px; color:#FFFFFF !important;'>⭐ <b>IMDb Rating:</b> {row['IMDb Score']:.1f} | 🎭 <b>Genre:</b> {row['Genre']}</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size:0.95rem; margin-bottom:5px; color:#FFFFFF !important;'>⭐ <b>IMDb Rating:</b> {row['IMDb Score']:.1f} | 🎭 <b>Genre:</b> {", ".join(genres_fmted)}</p>", unsafe_allow_html=True)
                         st.markdown(f"<p style='font-size:0.95rem; margin-bottom:15px; color:#FFFFFF !important;'>🎯 <b>Match Score:</b> <span style='color:#EB3678; font-weight:800;'>{row['similarity']:.0%}</span></p>", unsafe_allow_html=True)
                         st.markdown(f"<p class='movie-summary'>{row['Summary'][:180]}...</p>", unsafe_allow_html=True)
                     
