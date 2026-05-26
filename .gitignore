@@ -1,3 +1,5 @@
 *.env
 *.docx
 __pycache__/
+.~lock*
+
