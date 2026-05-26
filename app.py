@@ -39,13 +39,18 @@ def get_base64_of_bin_file(bin_file):
         data = f.read()
     return base64.b64encode(data).decode()
 
+# Definisikan 4 warna gradasi baru Anda di sini
+# Menggunakan sudut 135deg agar gradasi bergerak diagonal dari kiri atas ke kanan bawah
+gradient_style = "linear-gradient(135deg, #180161 0%, #4F1787 40%, #EB3678 75%, #FB773C 100%)"
+
 try:
     img_path = os.path.join(os.path.dirname(__file__), 'Movie Wall BG.jpeg')
     img_base64 = get_base64_of_bin_file(img_path)
     bg_css = f"""
     <style>
     [data-testid="stAppViewContainer"] {{
-        background-image: linear-gradient(180deg, rgba(81, 44, 100, 0.75) 0%, rgba(33, 11, 54, 0.92) 100%), url("data:image/jpeg;base64,{img_base64}");
+        /* Menggabungkan 4 warna gradasi (dengan opacity 0.6 agar gambar di bawahnya samar terlihat) + Gambar Latar Belakang */
+        background-image: linear-gradient(135deg, rgba(24, 1, 97, 0.6) 0%, rgba(79, 23, 135, 0.6) 40%, rgba(235, 54, 120, 0.6) 75%, rgba(251, 119, 60, 0.6) 100%), url("data:image/jpeg;base64,{img_base64}");
         background-size: cover; 
         background-position: center; 
         background-attachment: fixed;
@@ -54,8 +59,15 @@ try:
     """
     st.markdown(bg_css, unsafe_allow_html=True)
 except:
-    st.markdown("<style>[data-testid='stAppViewContainer'] {background: linear-gradient(180deg, #441A54, #1B072B);}</style>", unsafe_allow_html=True)
-
+    # JIKA GAMBAR GAGAL DIMUAT: Langsung menampilkan gradasi solid murni dari 4 warna pilihan Anda
+    st.markdown(f"""
+    <style>
+    [data-testid="stAppViewContainer"] {{
+        background: {gradient_style};
+        background-attachment: fixed;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
 
 # --- CUSTOM CSS FOR FIGMA GLASSMORPHISM LOOK ---
 st.markdown("""
