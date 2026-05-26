@@ -218,7 +218,7 @@ if st.session_state.current_step == 1:
         bg_color = "rgba(255, 255, 255, 0.35)" if is_sel else "rgba(255, 255, 255, 0.08)"
         border_color = "rgba(255, 255, 255, 0.8)" if is_sel else "rgba(255, 255, 255, 0.15)"
         
-        if col.button(genre, key=f"btn_{genre}", use_container_width=False):
+        if col.button(genre, key=f"btn_{genre}", use_container_width=True):
             if is_sel: 
                 st.session_state.liked_genres.remove(genre)
             else: 
