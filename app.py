@@ -337,67 +337,68 @@ elif st.session_state.current_step == 3:
             with st.spinner("Searching matching movies..."):
                 results = recommend(st.session_state.liked_genres, st.session_state.watch_history, top_k, knn, rf, feat, df)
                 results = results.sort_values(by='similarity', ascending=False)
-                st.session_state.recommendations = results  # STORE results
+                st.session_state.recommendations = results
 
     # --- SORT CONTROLS & DISPLAY (runs whenever recommendations exist) ---
-    if st.session_state.recommendations is not None:
-        results = st.session_state.recommendations.copy()
-
-        st.write("---")
-
-        sort_col1, sort_col2 = st.columns([2, 1])
-        with sort_col1:
-            sort_by = st.selectbox(
-                "Sort by:",
-                options=["Similarity", "Director"], # "Release Date" isn't working
-                key="sort_by_select"
-            )
-        with sort_col2:
-            sort_asc = st.checkbox("Ascending", value=False, key="sort_asc_check")
-
-        # Apply sort
-        sort_map = {
-            "Similarity": "similarity",
-            "Release Date": "Release Date",
-            "Director": "Director",
-        }
-        sort_col = sort_map[sort_by]
-
-        if sort_col in results.columns:
-            if sort_col == "Release Date":
-                sortable = pd.to_datetime(results[sort_col].str.replace(',', '', regex=False), errors='coerce')
-                results = results.assign(_sort_key=sortable).sort_values('_sort_key', ascending=sort_asc).drop(columns='_sort_key')
-            else:
-                results = results.sort_values(by=sort_col, ascending=sort_asc)
+    with st.spinner("Loading Results..."):
+        if st.session_state.recommendations is not None:
+            results = st.session_state.recommendations.copy()
 
             st.write("---")
-            for _, row in results.iterrows():
-                st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-                col_img, col_txt = st.columns([1, 2.5])
-                
-                with col_img:
-                    poster_url = row['Poster']
-                    if poster_url and str(poster_url).strip() != "" and check_valid_url(poster_url):
-                        st.image(poster_url, use_container_width=True)
-                    else:
-                        poster = fetch_fallback_poster(row['Title'])
-                        if poster: st.image(poster, use_container_width=True)
-                        else: st.info("No Poster Available")
-                
-                with col_txt:
-                    is_preferred = False
-                    if 'Director' in row and st.session_state.preferred_directors:
-                        if any(pref_dir in str(row['Director']) for pref_dir in st.session_state.preferred_directors):
-                            is_preferred = True
-                    if is_preferred:
-                        st.markdown("<span style='background: linear-gradient(135deg, #EB3678, #FB773C); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;'>🎬 Preferred Director</span><br><br>", unsafe_allow_html=True)
 
-                    st.markdown(f"<h3 style='margin-top:0px; color:#FB773C !important; font-weight:800;'>{row['Title']}</h3>", unsafe_allow_html=True)
-                    st.markdown(f"<p style='font-size:0.95rem; margin-bottom:5px; color:#FFFFFF !important;'>⭐ <b>IMDb Rating:</b> {row['IMDb Score']:.1f} | 🎭 <b>Genre:</b> {row['Genre']}</p>", unsafe_allow_html=True)
-                    st.markdown(f"<p style='font-size:0.95rem; margin-bottom:15px; color:#FFFFFF !important;'>🎯 <b>Match Score:</b> <span style='color:#EB3678; font-weight:800;'>{row['similarity']:.0%}</span></p>", unsafe_allow_html=True)
-                    st.markdown(f"<p class='movie-summary'>{row['Summary'][:180]}...</p>", unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
+            sort_col1, sort_col2 = st.columns([2, 1])
+            with sort_col1:
+                sort_by = st.selectbox(
+                    "Sort by:",
+                    options=["Similarity", "Release Date", "Director"],
+                    key="sort_by_select"
+                )
+            with sort_col2:
+                sort_asc = st.checkbox("Ascending", value=False, key="sort_asc_check")
+
+            # Apply sort
+            sort_map = {
+                "Similarity": "similarity",
+                "Release Date": "Release Date",
+                "Director": "Director",
+            }
+            sort_col = sort_map[sort_by]
+
+            if sort_col in results.columns:
+                if sort_col == "Release Date":
+                    sortable = pd.to_datetime(results[sort_col], format='%d %b %Y', errors='coerce')
+                    results = results.assign(_sort_key=sortable).sort_values('_sort_key', ascending=sort_asc).drop(columns='_sort_key')
+                else:
+                    results = results.sort_values(by=sort_col, ascending=sort_asc)
+
+                st.write("---")
+                for _, row in results.iterrows():
+                    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+                    col_img, col_txt = st.columns([1, 2.5])
+                    
+                    with col_img:
+                        poster_url = row['Poster']
+                        if poster_url and str(poster_url).strip() != "" and check_valid_url(poster_url):
+                            st.image(poster_url, use_container_width=True)
+                        else:
+                            poster = fetch_fallback_poster(row['Title'])
+                            if poster: st.image(poster, use_container_width=True)
+                            else: st.info("No Poster Available")
+                    
+                    with col_txt:
+                        is_preferred = False
+                        if 'Director' in row and st.session_state.preferred_directors:
+                            if any(pref_dir in str(row['Director']) for pref_dir in st.session_state.preferred_directors):
+                                is_preferred = True
+                        if is_preferred:
+                            st.markdown("<span style='background: linear-gradient(135deg, #EB3678, #FB773C); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;'>🎬 Preferred Director</span><br><br>", unsafe_allow_html=True)
+
+                        st.markdown(f"<h3 style='margin-top:0px; color:#FB773C !important; font-weight:800;'>{row['Title']}</h3>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size:0.95rem; margin-bottom:5px; color:#FFFFFF !important;'>⭐ <b>IMDb Rating:</b> {row['IMDb Score']:.1f} | 🎭 <b>Genre:</b> {row['Genre']}</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size:0.95rem; margin-bottom:15px; color:#FFFFFF !important;'>🎯 <b>Match Score:</b> <span style='color:#EB3678; font-weight:800;'>{row['similarity']:.0%}</span></p>", unsafe_allow_html=True)
+                        st.markdown(f"<p class='movie-summary'>{row['Summary'][:180]}...</p>", unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- FOOTER STICKY NAVIGATION ---

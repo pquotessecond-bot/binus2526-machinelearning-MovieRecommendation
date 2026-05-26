@@ -134,6 +134,6 @@ def recommend(liked_genres, watch_history, top_k,
     result.index += 1   # rank starts at 1
     result.index.name = 'rank'
 
-    return result[['movie_id','Title','Genre','Director','IMDb Score',
+    return result[['movie_id','Title','Genre','Director','Release Date', 'IMDb Score',
                    'Summary','Poster','similarity','like_proba','final_score']]
 
