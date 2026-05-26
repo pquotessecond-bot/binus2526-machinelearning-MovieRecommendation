@@ -17,10 +17,14 @@ AVAILABLE_GENRES = [
     'Documentary', 'Drama', 'Family', 'Fantasy', 'History', 'Horror',
     'Music', 'Mystery', 'Romance', 'Sci-Fi', 'Sport', 'Thriller', 'War', 'Western'
 ]
+# Get unique, non-null directors & sort alphabetically
+AVAILABLE_DIRECTORS = sorted([str(d) for d in df['Director'].dropna().unique() if str(d).strip() != ''])
 
 # --- SESSION STATE (Disinkronkan dengan kebutuhan Backend) ---
 if 'watch_history' not in st.session_state:
     st.session_state.watch_history = {}
+if 'preferred_directors' not in st.session_state:
+    st.session_state.preferred_directors = []
 if 'liked_genres' not in st.session_state:  # Menggunakan nama asli backend agar konsisten
     st.session_state.liked_genres = []
 if 'current_step' not in st.session_state:
@@ -30,6 +34,7 @@ if 'current_step' not in st.session_state:
 def reset_application():
     st.session_state.watch_history = {}
     st.session_state.liked_genres = []
+    st.session_state.preferred_directors = []
     st.session_state.current_step = 1
     st.rerun()
 
@@ -245,6 +250,22 @@ if st.session_state.current_step == 1:
             if pop_cols[i % 4].button(f"{g}  ❌", key=f"del_{g}"):
                 st.session_state.liked_genres.remove(g)
                 st.rerun()
+    st.write("---")
+    st.markdown('<h3>Preferred Directors (Optional)</h3><p style="color:#d1d5db; font-size:14px;">Select your favorite directors to highlight their movies in the results.</p>', unsafe_allow_html=True)
+    
+    if 'Director' in df.columns:
+        
+        selected_directors = st.multiselect(
+            "Choose directors:",
+            options=AVAILABLE_DIRECTORS,
+            default=st.session_state.preferred_directors,
+            key="director_select",
+            label_visibility="collapsed"
+        )
+        
+        if selected_directors != st.session_state.preferred_directors:
+            st.session_state.preferred_directors = selected_directors
+            st.rerun()
 
 # ==========================================
 # HALAMAN 2: WATCHED HISTORY
@@ -332,6 +353,13 @@ elif st.session_state.current_step == 3:
                             else: st.info("No Poster Available")
                     
                     with col_txt:
+                        is_preferred = False
+                        if 'Director' in row and st.session_state.preferred_directors:
+                            if any(pref_dir in str(row['Director']) for pref_dir in st.session_state.preferred_directors):
+                                is_preferred = True
+                        if is_preferred:
+                            st.markdown("<span style='background: linear-gradient(135deg, #EB3678, #FB773C); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;'>🎬 Preferred Director</span><br><br>", unsafe_allow_html=True)
+
                         st.markdown(f"<h3 style='margin-top:0px; color:#FB773C !important; font-weight:800;'>{row['Title']}</h3>", unsafe_allow_html=True)
                         st.markdown(f"<p style='font-size:0.95rem; margin-bottom:5px; color:#FFFFFF !important;'>⭐ <b>IMDb Rating:</b> {row['IMDb Score']:.1f} | 🎭 <b>Genre:</b> {row['Genre']}</p>", unsafe_allow_html=True)
                         st.markdown(f"<p style='font-size:0.95rem; margin-bottom:15px; color:#FFFFFF !important;'>🎯 <b>Match Score:</b> <span style='color:#EB3678; font-weight:800;'>{row['similarity']:.0%}</span></p>", unsafe_allow_html=True)
