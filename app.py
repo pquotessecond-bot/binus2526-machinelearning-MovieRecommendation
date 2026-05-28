@@ -138,7 +138,7 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 12px !important;
     }
-    
+
     div[data-baseweb="select"] * {
         color: #FFFFFF !important;
     }
@@ -147,15 +147,7 @@ st.markdown("""
     input[data-testid="stSelectboxInput"] {
         color: #FFFFFF !important;
     }
-
-    /* Popover/Dropdown list item text color fix */
-    [data-baseweb="popover"] *, 
-    [data-baseweb="menu"] *,
-    div[role="listbox"] *,
-    div[data-testid="stSelectboxVirtualList"] * {
-        color: #1A1A1A !important;
-    }
-
+    
     div[data-testid="stToast"] {
         background-color: #210B36 !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -182,7 +174,7 @@ with head_col2:
         }
         </style>
     """, unsafe_allow_html=True)
-    if st.button("🔄 Restart Application", key="app_reset_btn", use_container_width=True):
+    if st.button("Restart Application", key="app_reset_btn", use_container_width=True):
         reset_application()
 
 st.write("---")
