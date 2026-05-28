@@ -31,6 +31,8 @@ if 'current_step' not in st.session_state:
     st.session_state.current_step = 1
 if 'recommendations' not in st.session_state:
     st.session_state.recommendations = None
+if 'survey_shown' not in st.session_state:
+    st.session_state.survey_shown = False
 
 # --- SYSTEM RESET FUNCTION ---
 def reset_application():
@@ -39,13 +41,20 @@ def reset_application():
     st.session_state.preferred_directors = []
     st.session_state.current_step = 1
     st.session_state.recommendations = None
+    st.session_state.survey_shown = False
     st.rerun()
 
-# --- HELPER: BACKGROUND ---
+# --- HELPERS ---
 def get_base64_of_bin_file(bin_file):
     with open(bin_file, 'rb') as f:
         data = f.read()
     return base64.b64encode(data).decode()
+
+@st.dialog("Quick Feedback Survey")
+def show_survey_dialog():
+    st.write("After you see the results, please fill out a quick survey for our assignment!")
+    st.link_button("Google Forms Link", "https://forms.gle/sVSpvgcVsJtaq7iC9", type="secondary")
+    st.session_state.survey_shown = True
 
 # Definisikan 4 warna gradasi baru Anda di sini
 # Menggunakan sudut 135deg agar gradasi bergerak diagonal dari kiri atas ke kanan bawah
@@ -324,6 +333,8 @@ elif st.session_state.current_step == 3:
         if not st.session_state.liked_genres or not st.session_state.watch_history:
             st.error("Data preferences atau watch history kamu masih kosong! Silakan kembali ke step sebelumnya.")
         else:
+            if not st.session_state.survey_shown:
+                show_survey_dialog()
             with st.spinner("Searching matching movies..."):
                 results = recommend(st.session_state.liked_genres, st.session_state.watch_history, top_k, knn, rf, feat, df)
                 results = results.sort_values(by='similarity', ascending=False)
